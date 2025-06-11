@@ -92,11 +92,12 @@ local keyboardTable = {
 local chuzhong = require('./szx_beidanci_constants/chuzhong')
 local gaozhong = require('./szx_beidanci_constants/gaozhong')
 local yasi = require('./szx_beidanci_constants/yasi')
+local siji = require('./szx_beidanci_constants/siji')
 
 local selectOption = 1
 local selectedOption = 0
 local optionTitle = "选择您的答题词库："
-local optionList = {"初中词库", "高中词库", "雅思词库"}
+local optionList = {"初中词库", "高中词库", "雅思词库", "四级词库"}
 local optionNum = #optionList
 
 local isAnswering = false
@@ -447,7 +448,7 @@ local function onRender(_)
 
         local px = 145
         local py = 105
-        font:DrawStringUTF8("三只熊背单词v1.5", px - 20, py - 32, KColor(1, 1, 1, 1), 0, false)
+        font:DrawStringUTF8("三只熊背单词v1.6", px - 20, py - 32, KColor(1, 1, 1, 1), 0, false)
         font:DrawStringUTF8(optionTitle, px - 20, py - 12, KColor(1, 1, 1, 1), 0, false)
         for i = 1, optionNum do
             if selectOption == i then
@@ -637,7 +638,7 @@ local function onRender(_)
                 local splitIndex = nil
                 for i = #fullStr, 1, -1 do
                     local ch = fullStr:sub(i, i)
-                    if ch == ' ' or ch == ';' then
+                    if ch == ' ' or ch == ';' or ch == ',' then
                         local firstLine = fullStr:sub(1, i)
                         if font:GetStringWidthUTF8(firstLine) < maxWidth then
                             splitIndex = i
@@ -649,9 +650,35 @@ local function onRender(_)
                 -- 如果找到了合适的断点
                 if splitIndex then
                     local firstLine = fullStr:sub(1, splitIndex)
-                    local secondLine = fullStr:sub(splitIndex + 1):gsub("^%s+", "") -- 去掉前导空格
                     font:DrawStringScaledUTF8(firstLine, strPosX, strPosY, 1, 1, KColor(1, 1, 1, 1), 0, false)
-                    font:DrawStringScaledUTF8(secondLine, strPosX, strPosY + instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
+                    local secondLine = fullStr:sub(splitIndex + 1):gsub("^%s+", "") -- 去掉前导空格
+                    if font:GetStringWidthUTF8(secondLine) < maxWidth then
+                        font:DrawStringScaledUTF8(secondLine, strPosX, strPosY + instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
+                    else
+                        -- 查找最后一个空格或分号，确保截断后前一部分不超过maxWidth
+                        local splitIndex = nil
+                        for i = #secondLine, 1, -1 do
+                            local ch = secondLine:sub(i, i)
+                            if ch == ' ' or ch == ';' or ch == ',' then
+                                local firstSecondLine = secondLine:sub(1, i)
+                                if font:GetStringWidthUTF8(firstSecondLine) < maxWidth then
+                                    splitIndex = i
+                                    break
+                                end
+                            end
+                        end
+
+                        -- 如果找到了合适的断点
+                        if splitIndex then
+                            local firstSecondLine = secondLine:sub(1, splitIndex)
+                            font:DrawStringScaledUTF8(firstSecondLine, strPosX, strPosY + instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
+                            local thirdLine = secondLine:sub(splitIndex + 1):gsub("^%s+", "") -- 去掉前导空格
+                            font:DrawStringScaledUTF8(thirdLine, strPosX, strPosY + 2 * instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
+                        else
+                            -- 没找到断点
+                            font:DrawStringScaledUTF8(secondLine, strPosX, strPosY + instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
+                        end 
+                    end
                 else
                     -- 没找到断点
                     font:DrawStringScaledUTF8(fullStr, strPosX, strPosY, 1, 1, KColor(1, 1, 1, 1), 0, false)
@@ -788,6 +815,8 @@ local function onUpdate(_)
             ciku = gaozhong
         elseif selectedOption == 3 then
             ciku = yasi
+        elseif selectedOption == 4 then
+            ciku = siji
         else
             print("ciku overflow")
         end
