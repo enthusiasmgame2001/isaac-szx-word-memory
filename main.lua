@@ -93,11 +93,12 @@ local chuzhong = require('./szx_beidanci_constants/chuzhong')
 local gaozhong = require('./szx_beidanci_constants/gaozhong')
 local yasi = require('./szx_beidanci_constants/yasi')
 local siji = require('./szx_beidanci_constants/siji')
+local liuji = require('./szx_beidanci_constants/liuji')
 
 local selectOption = 1
 local selectedOption = 0
 local optionTitle = "选择您的答题词库："
-local optionList = {"初中词库", "高中词库", "雅思词库", "四级词库"}
+local optionList = {"初中词库", "高中词库", "雅思词库", "四级词库", "六级词库"}
 local optionNum = #optionList
 
 local isAnswering = false
@@ -447,8 +448,8 @@ local function onRender(_)
         end
 
         local px = 145
-        local py = 105
-        font:DrawStringUTF8("三只熊背单词v1.6", px - 20, py - 32, KColor(1, 1, 1, 1), 0, false)
+        local py = 95
+        font:DrawStringUTF8("三只熊背单词v1.7", px - 20, py - 32, KColor(1, 1, 1, 1), 0, false)
         font:DrawStringUTF8(optionTitle, px - 20, py - 12, KColor(1, 1, 1, 1), 0, false)
         for i = 1, optionNum do
             if selectOption == i then
@@ -817,6 +818,8 @@ local function onUpdate(_)
             ciku = yasi
         elseif selectedOption == 4 then
             ciku = siji
+        elseif selectedOption == 5 then
+            ciku = liuji
         else
             print("ciku overflow")
         end
