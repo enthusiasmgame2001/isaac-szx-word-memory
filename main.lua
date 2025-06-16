@@ -91,13 +91,14 @@ local keyboardTable = {
 local chuzhong = require('./szx_beidanci_constants/chuzhong')
 local gaozhong = require('./szx_beidanci_constants/gaozhong')
 local yasi = require('./szx_beidanci_constants/yasi')
+local kaoyan = require('./szx_beidanci_constants/kaoyan')
 local siji = require('./szx_beidanci_constants/siji')
 local liuji = require('./szx_beidanci_constants/liuji')
 local zhuanba = require('./szx_beidanci_constants/zhuanba')
 
-local modVersion = "三只熊背单词v1.8"
+local modVersion = "三只熊背单词v1.9"
 local optionTitle = "选择您的答题词库："
-local optionList = {"初中词库", "高中词库", "雅思词库", "四级词库", "六级词库", "专八词库"}
+local optionList = {"初中词库", "高中词库", "雅思词库", "考研词库", "四级词库", "六级词库", "专八词库"}
 local optionNum = #optionList
 local selectOption = 1
 local selectedOption = 0
@@ -818,12 +819,14 @@ local function loadUserData(jsonTable)
         selectedOption = -2
     elseif jsonTable["词库名称"] == "雅思词库" then
         selectedOption = -3
-    elseif jsonTable["词库名称"] == "四级词库" then
+    elseif jsonTable["词库名称"] == "考研词库" then
         selectedOption = -4
-    elseif jsonTable["词库名称"] == "六级词库" then
+    elseif jsonTable["词库名称"] == "四级词库" then
         selectedOption = -5
-    elseif jsonTable["词库名称"] == "专八词库" then
+    elseif jsonTable["词库名称"] == "六级词库" then
         selectedOption = -6
+    elseif jsonTable["词库名称"] == "专八词库" then
+        selectedOption = -7
     else
         print("ciku does not exist")
     end
@@ -884,10 +887,12 @@ local function onUpdate(_)
         elseif selectedOption == 3 then
             ciku = yasi
         elseif selectedOption == 4 then
-            ciku = siji
+            ciku = kaoyan
         elseif selectedOption == 5 then
-            ciku = liuji
+            ciku = siji
         elseif selectedOption == 6 then
+            ciku = liuji
+        elseif selectedOption == 7 then
             ciku = zhuanba
         else
             print("ciku overflow")

@@ -493,7 +493,13 @@ function json.encode(v)
         else
             for i, j in pairs(v) do
                 if isEncodable(i) and isEncodable(j) then
-                    table.insert(rval, '"' .. encodeString(i) .. '":' .. json.encode(j))
+                    if type(i) == 'number' then
+                        table.insert(rval, encodeString(i) .. ':' .. json.encode(j))
+                    elseif type(i) == 'string' then
+                        table.insert(rval, '"' .. encodeString(i) .. '":' .. json.encode(j))
+                    else
+                        assert(false, "table key type unsupported! Type:" .. type(i) .. 'Key:' .. tostring(i))
+                    end
                 end
             end
         end
