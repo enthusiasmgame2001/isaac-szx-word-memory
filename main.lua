@@ -88,6 +88,7 @@ local keyboardTable = {
     ["rest"] = restKeyboard -- the rest
 }
 
+local xiaoxue = require('./szx_beidanci_constants/xiaoxue')
 local chuzhong = require('./szx_beidanci_constants/chuzhong')
 local gaozhong = require('./szx_beidanci_constants/gaozhong')
 local yasi = require('./szx_beidanci_constants/yasi')
@@ -96,9 +97,9 @@ local siji = require('./szx_beidanci_constants/siji')
 local liuji = require('./szx_beidanci_constants/liuji')
 local zhuanba = require('./szx_beidanci_constants/zhuanba')
 
-local modVersion = "三只熊背单词v1.9"
+local modVersion = "三只熊背单词v2.0"
 local optionTitle = "选择您的答题词库："
-local optionList = {"初中词库", "高中词库", "雅思词库", "考研词库", "四级词库", "六级词库", "专八词库"}
+local optionList = {"小学词库", "初中词库", "高中词库", "雅思词库", "考研词库", "四级词库", "六级词库", "专八词库"}
 local optionNum = #optionList
 local selectOption = 1
 local selectedOption = 0
@@ -191,13 +192,16 @@ local authorsLove = false
 local function initKeyboardTableState(answer)
     for key, value in pairs(keyboardTable) do
         if (key >= "a" and key <= "z" and value[2] ~= nil and key ~= "rest") then
-            value[2] = (answer:find(key, 1, true) ~= nil)
+            value[2] = answer:find(key, 1, true) ~= nil
         end
     end
 end
 
 local function setPunishment()
-    Isaac.GetPlayer(0):AnimateSad()
+    local playerNum = game:GetNumPlayers()
+	for i = 0, playerNum - 1 do
+        Isaac.GetPlayer(i):AnimateSad()
+	end
 end
 
 local function interact(answerLength, answerCharTbl, questionIndex)
@@ -205,7 +209,18 @@ local function interact(answerLength, answerCharTbl, questionIndex)
     local answerIndex = inputSequenceTbl[questionIndex] + 1
     for i = 1, answerLength do
         if Input.IsButtonTriggered(keyboardTable[answerCharTbl[i]][1], 0) then
-            inputStr = inputStr .. answerCharTbl[i]
+            local word = answerCharTbl[i]
+            if curTaskAnswerStr == string.upper(curTaskAnswerStr) then
+                word = string.upper(word)
+            else
+                local ch = curTaskAnswerStr:sub(1, 1)
+                if ch >= 'A' and ch <= 'Z' then
+                    if inputStr == "" then
+                        word = string.upper(word)
+                    end
+                end
+            end
+            inputStr = inputStr .. word
             if answerCharTbl[i] == answerCharTbl[answerIndex] then
                 inputSequenceTbl[questionIndex] = inputSequenceTbl[questionIndex] + 1
             else
@@ -221,7 +236,18 @@ local function interact(answerLength, answerCharTbl, questionIndex)
     for key, value in pairs(keyboardTable) do
         if (key >= "a" and key <= "z" and value[2] ~= nil and not value[2]) then
             if Input.IsButtonTriggered(value[1], 0) then
-                inputStr = inputStr .. key
+                local word = key
+                if curTaskAnswerStr == string.upper(curTaskAnswerStr) then
+                    word = string.upper(word)
+                else
+                    local ch = curTaskAnswerStr:sub(1, 1)
+                    if ch >= 'A' and ch <= 'Z' then
+                        if inputStr == "" then
+                            word = string.upper(word)
+                        end
+                    end
+                end
+                inputStr = inputStr .. word
                 inputSequenceTbl[questionIndex] = 0
                 taskStateTbl[curTaskIndex][1] = 1
                 needContinueGetInputStrOnlyForDisplay = true
@@ -309,7 +335,7 @@ local function stateValueUpdate()
         curTaskAnswerLength = #curTaskAnswerStr
         curTaskAnswerSequenceTbl = {}
         for i = 1, curTaskAnswerLength do
-            local singleChar = curTaskAnswerStr:sub(i, i)
+            local singleChar = string.lower(curTaskAnswerStr:sub(i, i))
             table.insert(curTaskAnswerSequenceTbl, singleChar)
         end
     end
@@ -326,7 +352,7 @@ local function stateValueUpdateReverse()
         curTaskAnswerLength = #curTaskAnswerStr
         curTaskAnswerSequenceTbl = {}
         for i = 1, curTaskAnswerLength do
-            local singleChar = curTaskAnswerStr:sub(i, i)
+            local singleChar = string.lower(curTaskAnswerStr:sub(i, i))
             table.insert(curTaskAnswerSequenceTbl, singleChar)
         end
     end
@@ -466,7 +492,7 @@ local function onRender(_)
         end
 
         local px = 145
-        local py = 90
+        local py = 85
         font:DrawStringUTF8(modVersion, px - 20, py - 32, KColor(1, 1, 1, 1), 0, false)
         font:DrawStringUTF8(optionTitle, px - 20, py - 12, KColor(1, 1, 1, 1), 0, false)
         for i = 1, optionNum do
@@ -580,7 +606,18 @@ local function onRender(_)
             for key, value in pairs(keyboardTable) do
                 if (key >= "a" and key <= "z" and value[2] ~= nil and key ~= "rest") then
                     if Input.IsButtonTriggered(value[1], 0) then
-                        inputStr = inputStr .. key
+                        local word = key
+                        if curTaskAnswerStr == string.upper(curTaskAnswerStr) then
+                            word = string.upper(word)
+                        else
+                            local ch = curTaskAnswerStr:sub(1, 1)
+                            if ch >= 'A' and ch <= 'Z' then
+                                if inputStr == "" then
+                                    word = string.upper(word)
+                                end
+                            end
+                        end
+                        inputStr = inputStr .. word
                         break
                     end
                 end
@@ -714,7 +751,7 @@ local function onRender(_)
             font:DrawStringScaledUTF8("按[Num1]进入上一题", instructionPosX, instructionPosY + 2 * instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
             font:DrawStringScaledUTF8("按[Num2]显示当前答案", instructionPosX, instructionPosY + 3 * instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
             font:DrawStringScaledUTF8("按[Num3]进入下一题", instructionPosX, instructionPosY + 4 * instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
-            font:DrawStringScaledUTF8("答案仅由26个小写英文字母组成", instructionPosX, instructionPosY + 5 * instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
+            font:DrawStringScaledUTF8("答案仅由26个英文字母组成(不含空格)", instructionPosX, instructionPosY + 5 * instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
         elseif curTaskIndex == 2 then
             font:DrawStringScaledUTF8("答对有奖励，答错无惩罚！", instructionPosX, instructionPosY, 1, 1, KColor(1, 1, 1, 1), 0, false)
             font:DrawStringScaledUTF8("成功答对奖励随机掉落物", instructionPosX, instructionPosY + instructionLineGap, 1, 1, KColor(1, 1, 1, 1), 0, false)
@@ -811,22 +848,24 @@ local function loadUserData(jsonTable)
     correctNum = jsonTable["答对数"]
     curTaskIndex = jsonTable["当前问题序号"]
     taskTotalNum = #taskTable
-    remainTaskNum = taskTotalNum - curTaskIndex
+    remainTaskNum = taskTotalNum - curTaskIndex + 1
     statsTable["总题数"] = taskTotalNum .. "                             + 未正确作答最终选择跳过 + 未作答直接选择跳过"
-    if jsonTable["词库名称"] == "初中词库" then
+    if jsonTable["词库名称"] == "小学词库" then
         selectedOption = -1
-    elseif jsonTable["词库名称"] == "高中词库" then
+    elseif jsonTable["词库名称"] == "初中词库" then
         selectedOption = -2
-    elseif jsonTable["词库名称"] == "雅思词库" then
+    elseif jsonTable["词库名称"] == "高中词库" then
         selectedOption = -3
-    elseif jsonTable["词库名称"] == "考研词库" then
+    elseif jsonTable["词库名称"] == "雅思词库" then
         selectedOption = -4
-    elseif jsonTable["词库名称"] == "四级词库" then
+    elseif jsonTable["词库名称"] == "考研词库" then
         selectedOption = -5
-    elseif jsonTable["词库名称"] == "六级词库" then
+    elseif jsonTable["词库名称"] == "四级词库" then
         selectedOption = -6
-    elseif jsonTable["词库名称"] == "专八词库" then
+    elseif jsonTable["词库名称"] == "六级词库" then
         selectedOption = -7
+    elseif jsonTable["词库名称"] == "专八词库" then
+        selectedOption = -8
     else
         print("ciku does not exist")
     end
@@ -853,7 +892,7 @@ local function loadUserData(jsonTable)
     curTaskAnswerLength = #curTaskAnswerStr
     curTaskAnswerSequenceTbl = {}
     for i = 1, curTaskAnswerLength do
-        local singleChar = curTaskAnswerStr:sub(i, i)
+        local singleChar = string.lower(curTaskAnswerStr:sub(i, i))
         table.insert(curTaskAnswerSequenceTbl, singleChar)
     end
     taskattemptNum = 0 -- 正确作答的题数
@@ -881,18 +920,20 @@ local function onUpdate(_)
         -- init random question table
         local ciku = {}
         if selectedOption == 1 then
-            ciku = chuzhong
+            ciku = xiaoxue
         elseif selectedOption == 2 then
-            ciku = gaozhong
+            ciku = chuzhong
         elseif selectedOption == 3 then
-            ciku = yasi
+            ciku = gaozhong
         elseif selectedOption == 4 then
-            ciku = kaoyan
+            ciku = yasi
         elseif selectedOption == 5 then
-            ciku = siji
+            ciku = kaoyan
         elseif selectedOption == 6 then
-            ciku = liuji
+            ciku = siji
         elseif selectedOption == 7 then
+            ciku = liuji
+        elseif selectedOption == 8 then
             ciku = zhuanba
         else
             print("ciku overflow")
@@ -945,7 +986,7 @@ local function onUpdate(_)
         curTaskAnswerLength = #curTaskAnswerStr
         curTaskAnswerSequenceTbl = {}
         for i = 1, curTaskAnswerLength do
-            local singleChar = curTaskAnswerStr:sub(i, i)
+            local singleChar = string.lower(curTaskAnswerStr:sub(i, i))
             table.insert(curTaskAnswerSequenceTbl, singleChar)
         end
         inputStr = ""
@@ -956,7 +997,7 @@ local function onUpdate(_)
         authorsLove = false
         gameState = gameStateTbl.RUNNING
     end
-    if gameState == gameStateTbl.WAIT_FOR_LOADING_DATA then --todo
+    if gameState == gameStateTbl.WAIT_FOR_LOADING_DATA then
         local jsonTable = nil
         local id, progress, isEnd = szxJson.decode(taskInfo[1], szxJson.DECODE_MODE.TIME_CONTINUE, 25)
         if isEnd then
@@ -1000,7 +1041,7 @@ local function onGameStart(_, IsContinued)
             needContinueGetInputStrOnlyForDisplay = false
             authorsLove = false
             local jsonTable = nil
-            local id, progress, isEnd = szxJson.decode(mod:LoadData(), szxJson.DECODE_MODE.TIME_INIT) --todo
+            local id, progress, isEnd = szxJson.decode(mod:LoadData(), szxJson.DECODE_MODE.TIME_INIT)
             if isEnd then
                 taskInfo = {0, 100}
                 jsonTable = id
